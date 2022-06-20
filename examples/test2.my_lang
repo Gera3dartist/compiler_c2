@@ -1,0 +1,10 @@
+program 
+if a + b < c 
+    then 
+        if a = b 
+            then s := 5
+            else d := 500 
+        endif 
+    else d := 100 
+endif
+end

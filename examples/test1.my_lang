@@ -1,0 +1,8 @@
+program 
+if a < c 
+    then 
+        s := 5
+     else 
+        d := 100 
+endif
+end

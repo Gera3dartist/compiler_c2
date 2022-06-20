@@ -1,0 +1,74 @@
+(*
+  Editor: https://matthijsgroen.github.io/ebnf2railroad/try-yourself.html#Assign
+  The EBNF syntax is as follows: 
+*)
+
+Variable = Letter, { Letter | Digit };
+DeclSection = DeclarList; 
+DeclarList = Declaration, {";", Declaration };
+Declaration = VariabletList, ":", Type;
+VariabletList = Variable, {",", Variable};
+Type = IntNumb | RealNumb | BoolConst;
+
+StatementList = Statement, {";", Statement };
+Statement = Assign | Expression;
+Assign = Variable, "=", Expression;
+
+Expression = ArithmExpression
+| BoolExpr;
+
+BoolExpr = Expression, RelOp, Expression | BoolConst;
+
+ArithmExpression = [Sign], Term 
+| ArithmExpression, "+", Term 
+| ArithmExpression, "-", Term;
+
+
+Term = Factor 
+| Term, "*", Factor 
+| Term, "/", Factor 
+| Term, "^", Factor
+
+Factor = Variable 
+| Const 
+| "(", ArithmExpression, ")"; 
+
+
+doWhileStatement = "do", CodeBlock, "while", BoolExpr;
+CodeBlock = "{", {Newline}  StatementList, {Newline}, "}";
+
+Const = IntNumb | RealNumb | BoolConst;
+IntNumb = [Sign], UnsignedInt;
+RealNumb = [Sign], UnsignedReal;
+Sign = "+" | "-"; 
+UnsignedInt = Digit, {Digit};
+UnsignedReal = ".", UnsignedInt 
+| UnsignedInt, "." 
+| UnsignedInt, ".", UnsignedInt;
+BoolConst = 'true' | 'false';
+RelOp = "==" | "<=" | "<" | ">" | ">=" | "<>"; 
+
+IfStatement = "if", ["("], BoolExpr,  [")"], CodeBlock, "else", CodeBlock
+
+
+(*
+  Basic components
+  ----------------
+  These are low level components, the small building blocks.
+*)
+
+Letter = "A" | "B" | "C" | "D" | "E" | "F" | "G"
+       | "H" | "I" | "J" | "K" | "L" | "M" | "N"
+       | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
+       | "V" | "W" | "X" | "Y" | "Z" | "a" | "b"
+       | "c" | "d" | "e" | "f" | "g" | "h" | "i"
+       | "j" | "k" | "l" | "m" | "n" | "o" | "p"
+       | "q" | "r" | "s" | "t" | "u" | "v" | "w"
+       | "x" | "y" | "z" ;
+
+Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+
+WhiteSpace = (Blank|Tab), {Blank|Tab};
+Blank = "' '";
+Tab = '\t'; 
+Newline = '\n';
