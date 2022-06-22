@@ -1,7 +1,6 @@
 from compiler import lex, tableOfSymb, C2Parser, postfixTranslator, postfixInterpreter, stack
 
 lex()
-print('>>starting parsing')
 
 C2Parser(tableOfSymb).parseProgram()
 
@@ -9,7 +8,7 @@ C2Parser(tableOfSymb).parseProgram()
 
 # print("Запускаю Translator")
 # postfixTranslator(tableOfSymb)
-
+print(f">>>{tableOfSymb}")
 print("Запускаю Інтерпретер")
 postfixInterpreter(tableOfSymb)
 

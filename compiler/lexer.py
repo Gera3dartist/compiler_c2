@@ -320,7 +320,7 @@ def tableOfLabelToPrint():
 		s1 = '{0:<10s} {1:<10s} '
 		print("\n Таблиця міток")
 		print(s1.format("Label","Value"))
-		s2 = '{0:<10s} {1:<10d} '
+		s2 = '{0:<10s} {1:<10s} '
 		for lbl in tableOfLabel: 
 			val = tableOfLabel[lbl]
 			print(s2.format(lbl,val))

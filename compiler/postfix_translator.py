@@ -128,14 +128,14 @@ def failParse(str,tuple):
 # StatementList = Statement  { Statement }
 # викликає функцію parseStatement() доти,
 # доки parseStatement() повертає True
-def parseStatementList():
+def parseStatementList(block=False):
     # print('\t parseStatementList():')
-    while parseStatement():
+    while parseStatement(block):
             pass
     return True
 
 
-def parseStatement():
+def parseStatement(block):
     # прочитаємо поточну лексему в таблиці розбору
     if numRow > len_tableOfSymb:
         return False
@@ -153,16 +153,13 @@ def parseStatement():
         return True 
     elif (lex, tok) == ('do','keyword'):
         return parse_do_while() 
-
-    elif (lex, tok) == ('}','curbr_op'):
-        # hit code block
+    elif (lex, tok) == ('}','curbr_op') and block:
         return False
 
     # тут - ознака того, що всі інструкції були коректно 
     # розібрані і була знайдена остання лексема програми.
     # тому parseStatement() має завершити роботу
-    elif (lex, tok) == ('end','keyword'):
-            return False
+
 
     else: 
         # жодна з інструкцій не відповідає 
@@ -215,28 +212,27 @@ def parseIf():
         parseBoolExpr()  # Трансляція
         with parse_code_block():
             # Згенерувати мітку m1 = (lex,'label')
-            m1 = createLabel()      
+            m1 = createLabel()
             postfixCode.append(m1)  # Трансляція    
             postfixCode.append(('JF','jf'))   # додали m1 JF   
-            parseStatementList();
+            parseStatementList(block=True);
 
-        if parseToken('else','keyword','\t'*7):
-            with parse_code_block():
-                # Згенерувати мітку m2 = (lex,'label')
-                m2 = createLabel()      
-                postfixCode.append(m2)  # Трансляція 1
-                postfixCode.append(('JMP','jump'))   # додали m2 JMP m1 : 2
-                setValLabel(m1) # в табл. міток {m1: 2}
-                postfixCode.append(m1)
-                postfixCode.append((':','colon'))
-                parseStatementList();
-                setValLabel(m2) # в табл. міток
-                postfixCode.append(m2)  # Трансляція
-                postfixCode.append((':','colon'))
+        parseToken('else','keyword','\t'*7)
+        m2 = createLabel()      
+        with parse_code_block():
+            # Згенерувати мітку m2 = (lex,'label')
+            postfixCode.append(m2)  # Трансляція 1
+            postfixCode.append(('JMP','jump'))   # додали m2 JMP m1 : 2
+            setValLabel(m1) # в табл. міток {m1: 2}
+            postfixCode.append(m1)
+            postfixCode.append((':','colon'))
+            parseStatementList(block=True);
+        setValLabel(m2) # в табл. міток
+        postfixCode.append(m2)  # Трансляція
+        postfixCode.append((':','colon'))
                 
         return True
     else: return False
-
 
 
 def createLabel():
@@ -279,14 +275,13 @@ def parseBoolExpr():
         postfixCode.append((lex,tok))   # Трансляція
         return True
     else:
-        parseExpression()       
+        parseExpression()
         if numRow > len_tableOfSymb:
             return True    # Трансляція
         numLine, lex, tok = getSymb()
         if (lex, tok) == ('{', 'curbr_op'):
             return True
-        increment_row()
-        parseExpression()               # Трансляція
+        
     if tok in ('rel_op'):
         postfixCode.append((lex,tok))   # Трансляція
         # print('\t'*5+'в рядку {0} - {1}'.format(numLine,(lex, tok)))
@@ -356,17 +351,31 @@ def parseTerm():
         if numRow > len_tableOfSymb:
             break
         _numLine, lex, tok = getSymb()
-        if tok in ('mult_op') and increment_row():
-            
-            # print('\t'*6+'в рядку {0} - {1}'.format(numLine,(lex, tok)))
-            parseFactor()       # Трансляція (тут нічого не робити)    
-                                # ця функція сама згенерує та додасть ПОЛІЗ множника
 
-                                # Трансляція   
-            postfixCode.append((lex,tok))  
-                                # lex - бінарний оператор  '*' чи '/'
-                                # додається після своїх операндів
-            if toView: configToPrint(lex,numRow)
+        if tok in ('mult_op') and increment_row():
+        
+            if lex == '^':
+                times = 1
+                while (lex == '^'):
+                    parseFactor() # this may icrement numRow
+                    if numRow > len_tableOfSymb:
+                        break
+                    _, lex, tok = getSymb()
+                    if lex == '^':
+                        times +=1
+                        increment_row()
+                    else:
+                        break
+
+                postfixCode.extend([('^','mult_op')]*times)
+            else:
+                parseFactor()       # Трансляція (тут нічого не робити)    
+                                    # ця функція сама згенерує та додасть ПОЛІЗ множника
+
+                                    # Трансляція   
+                postfixCode.append((lex,tok))  
+                                    # lex - бінарний оператор  '*' чи '/'
+                                    # додається після своїх операндів
         else:
             F = False
     return True
@@ -384,7 +393,6 @@ def parseFactor():
         postfixCode.append((lex,tok))      # Трансляція
                                 # ПОЛІЗ константи або ідентифікатора 
                                 # відповідна константа або ідентифікатор
-        if toView: configToPrint(lex,numRow)
 
         increment_row()
         # print('\t'*7+'в рядку {0} - {1}'.format(numLine,(lex, tok)))
@@ -425,23 +433,22 @@ def parse_do_while() -> bool:
     with parse_code_block():
         # set label
         setValLabel(m1) # в табл. міток
-
-        parseStatementList()
+        parseStatementList(block=True)
     parseToken('while','keyword','\t'*7)
     parseBoolExpr()
 
     postfixCode.append(m1)  # add label
     postfixCode.append(('JT','jt'))   # додали m1 JT
-    # postfixCode.append(m1)
-    # postfixCode.append((':','colon'))
+    postfixCode.append(m1)
+    postfixCode.append((':','colon'))
     return True
 
 
 def serv():
 
-    tableToPrint('All')
-    tableToPrint('Label')
-    tableToPrint('Id')
+    # tableToPrint('All')
+    # tableToPrint('Label')
+    # tableToPrint('Id')
     print('\nПочатковий код програми: \n{0}'.format(sourceCode))
     print('\nКод програми у постфіксній формі (ПОЛІЗ): \n{0}'.format(postfixCode)) 
     for lbl in tableOfLabel:
@@ -526,7 +533,7 @@ def getValue(vtL,lex,vtR):
         value = int(valL / valR)
 
     elif lex == '^' and tokL=='int':
-        value = int(valL ** valR)
+        value = float(valL ** valR)
     elif lex == '>':
         value = valL > valR
     elif lex == '<':
@@ -559,10 +566,12 @@ def failRunTime(str,tuple):
 
 
 def doJumps(tok, nextInstr):
+    global stack
     if tok =='jump':
         _next = processing_JUMP(nextInstr)
-    elif tok =='colon':
-        _next = processing_colon(nextInstr)
+    elif tok == 'colon':
+        (_, _) = stack.pop()
+        _next =  nextInstr + 1
     elif tok =='jf':
         _next = processing_JF(nextInstr)
     elif tok == 'jt':
@@ -609,7 +618,7 @@ def processing_JT(nextInstr):
     """
     Функцiя processing_JT() знiмає з вершини стека мiтку, потiм знiмає значен-
     ня BoolExpr i, якщо це true – повертає значення мiтки як номер iнструкцiї
-    для виконання на наступному кроцi, iнакше – номер, на одиницю бiльшим за
+    для виконання на наступному кроцi, iнакше – номер, на одиницю бiльшим з     
     поточний.
     """
     global stack
@@ -638,7 +647,7 @@ def postfixProcessing():
     cyclesNumb = 0
     maxNumb = len(postfixCode)
     try:
-        while (nextInstr < maxNumb and cyclesNumb < 100):
+        while (nextInstr < maxNumb and cyclesNumb < 1000):
             cyclesNumb += 1
             lex,tok = postfixCode[nextInstr]
             commandTrack.append((nextInstr,lex,tok))
@@ -651,9 +660,11 @@ def postfixProcessing():
                 doIt(lex,tok)
                 nextInstr+=1
             print('Загальна кiлькiсть крокiв: {0}'.format(cyclesNumb))
-            print(f'Постфікс Інструкції: {postfixCode}')
     except SystemExit as e:
         # Повiдомити про факт виявлення помилки
         print('RunTime: Аварiйне завершення програми з кодом {0}'.format(e))
     finally:
+        print(f'Постфікс Інструкції: {postfixCode}')
+        print(f'Таблиця змінних: {tableOfId}')
         return commandTrack
+

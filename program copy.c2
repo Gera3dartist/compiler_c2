@@ -11,12 +11,12 @@ b =  3.4 / 3.2
 
 
 if (a < c) {
-  z = z + a
+  foo = a + 1
 } else {
-  foo = z + 1
+  foo = c + 1
 }
 
-
+counter = 0
 do {
-  a = a + 1
-} while (a > z)
+  counter = counter + 1
+} while (counter > 5)
