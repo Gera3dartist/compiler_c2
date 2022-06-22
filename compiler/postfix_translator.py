@@ -38,7 +38,7 @@ def parseProgram():
     try:
         # # перевірити наявність ключового слова 'program'
         # parseToken('program','keyword','')  # Трансляція не потрібна
-        #                                     # лексема не має операційної семантики 
+        #                                       # лексема не має операційної семантики 
 
         # перевірити синтаксичну коректність списку інструкцій StatementList
         parseStatementList()                # Трансляція (тут нічого не робити)  
@@ -451,8 +451,8 @@ def serv():
     # tableToPrint('Id')
     print('\nПочатковий код програми: \n{0}'.format(sourceCode))
     print('\nКод програми у постфіксній формі (ПОЛІЗ): \n{0}'.format(postfixCode)) 
-    for lbl in tableOfLabel:
-        print('postfixCode[{0}:{1}]={2}'.format(lbl,tableOfLabel[lbl],postfixCode[tableOfLabel[lbl]]))
+    print('\Код програми: \n{0}'.format(sourceCode))
+    
     
     return True
 
@@ -634,7 +634,6 @@ def postfixInterpreter(table_of_symbols):
     FSuccess = postfixTranslator(table_of_symbols)
     # чи була успiшною трансляцiя
     if (True,'Translator') == FSuccess:
-        print('\nПостфiксний код: \n{0}'.format(postfixCode))
         return postfixProcessing()
     else:
         # Повiдомити про факт виявлення помилки
@@ -659,12 +658,10 @@ def postfixProcessing():
             else:
                 doIt(lex,tok)
                 nextInstr+=1
-            print('Загальна кiлькiсть крокiв: {0}'.format(cyclesNumb))
     except SystemExit as e:
         # Повiдомити про факт виявлення помилки
         print('RunTime: Аварiйне завершення програми з кодом {0}'.format(e))
     finally:
-        print(f'Постфікс Інструкції: {postfixCode}')
-        print(f'Таблиця змінних: {tableOfId}')
+        print(f'Таблиця змінних:\n {tableOfId}')
         return commandTrack
 

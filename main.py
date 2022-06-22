@@ -1,14 +1,13 @@
 from compiler import lex, tableOfSymb, C2Parser, postfixTranslator, postfixInterpreter, stack
 
+print("Розпочинаю фазу лексичного аналізу...")
 lex()
+print("Фаза лексичного аналізу завершилась успішно")
 
+print("Розпочинаю фазу синктаксичного аналізу...")
 C2Parser(tableOfSymb).parseProgram()
+print("Фаза синктаксичного аналізу завершилась успішно")
 
-# run  postfixInterpreter
-
-# print("Запускаю Translator")
-# postfixTranslator(tableOfSymb)
-print(f">>>{tableOfSymb}")
 print("Запускаю Інтерпретер")
 postfixInterpreter(tableOfSymb)
 
